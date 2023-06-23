@@ -1,16 +1,24 @@
 import openai
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from fake_useragent import UserAgent
 from time import sleep
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from threading import Thread
 
-gptChatApiKey = 'you-api-key'
-vkToken = 'your-vk-acces-token'
-browser = webdriver.Chrome()
-phoneNumber = 'your-number'
-accountPassword = 'your-password'
+gptChatApiKey = 'your gpt chat key'
+vkToken = 'your vk access token'
+phoneNumber = 'your phone number'
+accountPassword = 'your password'
+
+options = Options()
+# options.add_argument("window-size=800,1000")
+# ua = UserAgent()
+# user_agent = ua.random
+# options.add_argument(f'user-agent={user_agent}')
+browser = webdriver.Chrome(options=options)
 
 
 def exitWaiter():
@@ -20,41 +28,48 @@ def exitWaiter():
         exit(1)
 
 
-# def secureCodeWaiter():
-#     while True:
-#         print('Your secure code: ')
-#         code = input()
-#         if code == '':
-#             continue
-#         else:
-#             return code
+def secureCodeWaiter():
+    while True:
+        print('Your secure code: ')
+        code = input()
+        if code == '':
+            continue
+        else:
+            return code
 
 
 def signInWithSecureCode():
     browser.get('https://m.vk.com/im?')
 
-    number = browser.find_element(
+    phone = browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(phoneNumber)
 
     browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/div[1]/button/span[1]/span').click()
+    sleep(1)
 
-    # secureCode = secureCodeWaiter()
+    password = browser.find_element(
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/div[3]/div[1]/div/input').send_keys(accountPassword)
 
-    # number = browser.find_element(
-    #     "xpath", '//*[@id="otp"]').send_keys(secureCode)
+    browser.find_element(
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/button/span[1]/span').click()
 
-    # browser.find_element(
-    #     "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[4]/div/button[1]').click()
+    secureCode = secureCodeWaiter()
 
-    # if browser.current_url != 'https://m.vk.com/mail':
-    #     signInWithSecureCode()
+    number = browser.find_element(
+        "xpath", '//*[@id="otp"]').send_keys(secureCode)
+
+    browser.find_element(
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[3]/div/button/span[1]/span/span').click()
+    sleep(2)
+    if browser.current_url != 'https://m.vk.com/mail':
+        signInWithSecureCode()
 
 
 def signInWithPassword():
     browser.get('https://m.vk.com/im?')
 
-    number = browser.find_element(
+    phone = browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(phoneNumber)
 
     browser.find_element(
