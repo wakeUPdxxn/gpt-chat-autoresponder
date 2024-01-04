@@ -7,18 +7,55 @@ from time import sleep
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from threading import Thread
+from os import path
+import json
 
-gptChatApiKey = 'your gpt chat key'
-vkToken = 'your vk access token'
-phoneNumber = 'your phone number'
-accountPassword = 'your password'
+userData = {"gptApiKey": 'null', "vkToken": 'null',
+            "phone": 'null', "pass": 'null'}
 
 options = Options()
 # options.add_argument("window-size=800,1000")
 # ua = UserAgent()
 # user_agent = ua.random
 # options.add_argument(f'user-agent={user_agent}')
-browser = webdriver.Chrome(options=options)
+browser = any
+
+
+def dataEditor(option):
+    if option == 'add':
+        with open("data.json", "w") as fh:
+            json.dump(userData, fh)
+
+
+def dataReader():
+    if str(path.exists('data.json')) != 'True':
+        return 1
+    with open("data.json", "r") as fh:
+        userData = json.load(fh)
+    for key, value in userData.items():
+        if value == 'null':
+            print('User Data is not full')
+
+
+def isFirstTime():
+    if str(path.exists('data.json')) != 'True':
+        print('Seems its your first time there.Lets make a data setup?[Y/n]')
+        choise = input()
+        if choise == 'Y' or choise == 'y':
+            print('Please,enter your phone number: ')
+            userData['phone'] = input()
+            print('Please,enter your account pass: ')
+            userData['pass'] = input()
+            print('Please,enter your vk token: ')
+            userData['vkToken'] = input()
+            print('Please,enter your gptChat api key: ')
+            userData['gptApiKey'] = input()
+
+            dataEditor('add')
+        else:
+            return
+    else:
+        return
 
 
 def exitWaiter():
@@ -39,17 +76,18 @@ def secureCodeWaiter():
 
 
 def signInWithSecureCode():
+    browser = webdriver.Chrome(options=options)
     browser.get('https://m.vk.com/im?')
 
     phone = browser.find_element(
-        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(phoneNumber)
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(userData['phone'])
 
     browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/div[1]/button/span[1]/span').click()
     sleep(1)
 
     password = browser.find_element(
-        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/div[3]/div[1]/div/input').send_keys(accountPassword)
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/div[3]/div[1]/div/input').send_keys(userData['pass'])
 
     browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/button/span[1]/span').click()
@@ -67,10 +105,11 @@ def signInWithSecureCode():
 
 
 def signInWithPassword():
+    browser = webdriver.Chrome(options=options)
     browser.get('https://m.vk.com/im?')
 
     phone = browser.find_element(
-        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(phoneNumber)
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/section/div[1]/div/div/input').send_keys(userData['phone'])
 
     browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/div[1]/button/span[1]/span').click()
@@ -81,7 +120,7 @@ def signInWithPassword():
     sleep(0.5)
 
     password = browser.find_element(
-        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/div[3]/div[1]/div/input').send_keys(accountPassword)
+        "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[1]/div[3]/div[1]/div/input').send_keys(userData['pass'])
 
     browser.find_element(
         "xpath", '//*[@id="root"]/div/div/div/div/div[1]/div/div/div/div/form/div[2]/button/span[1]/span').click()
@@ -99,7 +138,7 @@ def makeAnswer(answer):
 
 
 def messageWaiter():
-    vk = vk_api.VkApi(token=vkToken)
+    vk = vk_api.VkApi(token=userData['vkToken'])
     longpool = VkLongPoll(vk)
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW:
@@ -131,7 +170,7 @@ def messageWaiter():
 
 
 def gptChatRequest(request):
-    openai.api_key = gptChatApiKey
+    openai.api_key = userData['gptApiKey']
     messages = [{"role": "system", "content":
                  request}]
     try:
@@ -147,19 +186,25 @@ def gptChatRequest(request):
         makeAnswer(reply)
 
 
-print('1-SignIn with password \n2-SignIn with secure code \n3-Exit from the application')
-choise = input()
-if choise == '1':
-    signInWithPassword()
-elif choise == '2':
-    signInWithSecureCode()
-elif choise == '3':
-    browser.close()
-    exit(1)
+def main():
+    dataStatus = dataReader()
+    if dataStatus == 1:
+        print('User data is not fully filled out! \n')
+    print('1-SignIn with password \n2-SignIn with secure code \n3-Exit from the application \n')
+    choise = input()
+    if choise == '1':
+        signInWithPassword()
+    elif choise == '2':
+        signInWithSecureCode()
+    elif choise == '3':
+        exit(1)
+    print('For close the application,please type "Exit" or "Stop". Enjoy)')
 
-print('For close the application,please type "Exit" or "Stop". Enjoy)')
+    exitWaiterThread = Thread(target=exitWaiter)
+    exitWaiterThread.start()
 
-exitWaiterThread = Thread(target=exitWaiter)
-exitWaiterThread.start()
+    messageWaiter()
 
-messageWaiter()
+
+isFirstTime()
+main()
