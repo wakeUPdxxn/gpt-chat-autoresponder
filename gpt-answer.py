@@ -172,7 +172,7 @@ def gptChatRequest(request):
         makeAnswer(reply)
                 
 def parseIDs():
-    idPool = np.loadtxt("data.txt", delimiter='\t', dtype=np.float)
+    idPool = np.loadtxt("id.txt", delimiter='\t', dtype=np.float)
 
 def main():
     dataStatus = dataReader()
