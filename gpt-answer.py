@@ -143,31 +143,18 @@ def messageWaiter():
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me and event.text != "Стоп":
-                if event.peer_id == 731564359:
+                if event.peer_id == #DIALOG ID HERE:
                     if browser.current_url != 'https://m.vk.com/im?sel=731564359':
                         browser.get('https://m.vk.com/im?sel=731564359')
                         gptChatRequest(event.text)
                     else:
                         gptChatRequest(event.text)
-                elif event.peer_id == 230713626:
+                elif event.peer_id == #ANOTHER DIALOG ID:
                     if browser.current_url != 'https://m.vk.com/im?sel=230713626':
                         browser.get('https://m.vk.com/im?sel=230713626')
                         gptChatRequest(event.text)
                     else:
                         gptChatRequest(event.text)
-                elif event.peer_id == 258024208:
-                    if browser.current_url != 'https://m.vk.com/im?sel=258024208':
-                        browser.get('https://m.vk.com/im?sel=258024208')
-                        gptChatRequest(event.text)
-                    else:
-                        gptChatRequest(event.text)
-                elif event.peer_id == 509403815:
-                    if browser.current_url != 'https://m.vk.com/im?sel=509403815':
-                        browser.get('https://m.vk.com/im?sel=509403815')
-                        gptChatRequest(event.text)
-                    else:
-                        gptChatRequest(event.text)
-
 
 def gptChatRequest(request):
     openai.api_key = userData['gptApiKey']
