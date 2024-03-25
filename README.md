@@ -4,4 +4,4 @@ Due to the fact that VK has blocked access to the "sendMessage" API, messsages a
 ## Also,for usage you need to:
 + find your VK token,wich provides an access to the API's and gptChat key.
 + Set up all id's for responding in file called "id.txt". If its not exist,create it.
-On the first launch, you will be asked to fill in all the required data.After that,they will be contained in "data.json" file
+## On the first launch, you will be asked to fill in all the required data.After that,they will be contained in "data.json" file
