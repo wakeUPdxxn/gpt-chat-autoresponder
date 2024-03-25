@@ -9,9 +9,12 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from threading import Thread
 from os import path
 import json
+import numpy as np
 
 userData = {"gptApiKey": 'null', "vkToken": 'null',
             "phone": 'null', "pass": 'null'}
+
+idPool = np.empty([],dtype=int)
 
 options = Options()
 # options.add_argument("window-size=800,1000")
@@ -143,18 +146,14 @@ def messageWaiter():
     for event in longpool.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me and event.text != "Стоп":
-                if event.peer_id == #DIALOG ID HERE:
-                    if browser.current_url != 'https://m.vk.com/im?sel=731564359':
-                        browser.get('https://m.vk.com/im?sel=731564359')
-                        gptChatRequest(event.text)
-                    else:
-                        gptChatRequest(event.text)
-                elif event.peer_id == #ANOTHER DIALOG ID:
-                    if browser.current_url != 'https://m.vk.com/im?sel=230713626':
-                        browser.get('https://m.vk.com/im?sel=230713626')
-                        gptChatRequest(event.text)
-                    else:
-                        gptChatRequest(event.text)
+                for id in idPool:
+                            if event.peer_id == id:
+                                dialogPageUrl =  "https://m.vk.com/im?sel="+str(id)
+                                if browser.current_url != dialogPageUrl:
+                                    browser.get(dialogPageUrl)
+                                    gptChatRequest(event.text)
+                                else:
+                                    gptChatRequest(event.text)            
 
 def gptChatRequest(request):
     openai.api_key = userData['gptApiKey']
@@ -171,7 +170,9 @@ def gptChatRequest(request):
     else:
         reply = chat.choices[0].message.content
         makeAnswer(reply)
-
+                
+def parseIDs():
+    idPool = np.loadtxt("data.txt", delimiter='\t', dtype=np.float)
 
 def main():
     dataStatus = dataReader()
@@ -185,6 +186,9 @@ def main():
         signInWithSecureCode()
     elif choise == '3':
         exit(1)
+                
+    parseIDs();
+            
     print('For close the application,please type "Exit" or "Stop". Enjoy)')
 
     exitWaiterThread = Thread(target=exitWaiter)
