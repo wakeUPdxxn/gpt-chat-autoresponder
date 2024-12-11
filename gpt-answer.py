@@ -1,8 +1,6 @@
 import openai
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from fake_useragent import UserAgent
+import chromedriver_binary
 from time import sleep
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
@@ -14,13 +12,8 @@ import numpy as np
 userData = {"gptApiKey": 'null', "vkToken": 'null',
             "phone": 'null', "pass": 'null'}
 
-idPool = np.empty([],dtype=int)
+idPool = np.empty([], dtype=int)
 
-options = Options()
-# options.add_argument("window-size=800,1000")
-# ua = UserAgent()
-# user_agent = ua.random
-# options.add_argument(f'user-agent={user_agent}')
 browser = any
 
 
@@ -79,7 +72,7 @@ def secureCodeWaiter():
 
 
 def signInWithSecureCode():
-    browser = webdriver.Chrome(options=options)
+    browser = webdriver.Chrome()
     browser.get('https://m.vk.com/im?')
 
     phone = browser.find_element(
@@ -108,7 +101,7 @@ def signInWithSecureCode():
 
 
 def signInWithPassword():
-    browser = webdriver.Chrome(options=options)
+    browser = webdriver.Chrome()
     browser.get('https://m.vk.com/im?')
 
     phone = browser.find_element(
@@ -147,13 +140,14 @@ def messageWaiter():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me and event.text != "Стоп":
                 for id in idPool:
-                            if event.peer_id == id:
-                                dialogPageUrl =  "https://m.vk.com/im?sel="+str(id)
-                                if browser.current_url != dialogPageUrl:
-                                    browser.get(dialogPageUrl)
-                                    gptChatRequest(event.text)
-                                else:
-                                    gptChatRequest(event.text)            
+                    if event.peer_id == id:
+                        dialogPageUrl = "https://m.vk.com/im?sel="+str(id)
+                        if browser.current_url != dialogPageUrl:
+                            browser.get(dialogPageUrl)
+                            gptChatRequest(event.text)
+                        else:
+                            gptChatRequest(event.text)
+
 
 def gptChatRequest(request):
     openai.api_key = userData['gptApiKey']
@@ -170,9 +164,11 @@ def gptChatRequest(request):
     else:
         reply = chat.choices[0].message.content
         makeAnswer(reply)
-                
+
+
 def parseIDs():
     idPool = np.loadtxt("id.txt", delimiter='\t', dtype=np.float)
+
 
 def main():
     dataStatus = dataReader()
@@ -186,9 +182,9 @@ def main():
         signInWithSecureCode()
     elif choise == '3':
         exit(1)
-                
-    parseIDs();
-            
+
+    parseIDs()
+
     print('For close the application,please type "Exit" or "Stop". Enjoy)')
 
     exitWaiterThread = Thread(target=exitWaiter)
